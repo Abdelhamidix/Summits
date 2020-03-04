@@ -1,0 +1,284 @@
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Email</th>
+            <th scope="col">Phone</th>
+            <th scope="col">Rooms</th>
+            <th scope="col">Status</th>
+            <th scope="col">Price/Night</th>
+            <th scope="col">Nights</th>
+            <th scope="col">Hotel</th>
+            <th scope="col">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr *ngIf="all_reservations.length===0">
+            <td colspan="8"> No available reservations , try add some and get back !</td>
+        </tr>
+        <tr *ngFor="let room of all_reservations | paginate: { itemsPerPage: 10, currentPage: p } | slice:0:80 as total; index as i;">
+            <td>{{i+1}}</td>
+            <td>{{room.email}}</td>
+            <td>{{room.phone}}</td>
+            <td>{{room.noRooms}}</td>
+            <td>{{room.status}}</td>
+            <td>{{room.price_night}}</td>
+            <td>{{room.days}}</td>
+            <td *ngIf="room.room">{{room.hotel.name}}</td>
+            <td *ngIf="!room.room" colspan="1">No Hotel available for this Reservation</td>
+            <td>
+                <div class="btn-group">
+                    <button type="submit" class="bs-margin btn btn-info" data-toggle="modal" data-target=".bs-edit-room"
+                        (click)="Confirm(room)">
+                        <span class="fa fa-edit" aria-hidden="true"></span>
+                    </button>
+                    <button type="button" class="bs-margin btn btn-danger" (click)="deleteReservation(room)">
+                        <span class="fa fa-remove" aria-hidden="true"></span>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    </tbody>
+</table>
+<pagination-controls (pageChange)="p = $event"></pagination-controls>
+
+<!-- <div class="modal fade bs-edit-room" tabIndex="-1" role="dialog" aria-labelledby="bsAEditRoom">
+    <form class="form-horizontal" id="reservationsform" #reservationsForm="ngForm" (ngSubmit)="updateReservation()">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Edit Reservation</h4>
+                    <button type="button" id="editModal" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Room</th>
+                                <th scope="col">Bed</th>
+                                <th scope="col">Adults</th>
+                                <th scope="col">Children</th>
+                                <th scope="col">Rate</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngIf="curr_rooms.length===0">
+                                <td colspan="8"> No available Rooms , try add some and get back !</td>
+                            </tr>
+                            <tr class="selected" *ngFor="let room of curr_rooms | slice:0:80 as total; index as i;"
+                                (click)="selectRoom($event.target,room)">
+                                <td>{{i+1}}</td>
+                                <td>{{room.name}}</td>
+                                <td>{{room.bed}}</td>
+                                <td>{{room.adults}}</td>
+                                <td>{{room.children}}</td>
+                                <td>{{room.rate}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="form-group center">
+                        <button type="submit" class="btn btn-primary form-control"
+                            [disabled]="reservationsForm.invalid">Send Email</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div> -->
+
+<div id="m_scroll_top" class="m-scroll-top" data-toggle="modal" data-target=".bs-add-rsv" (click)="getAllRooms()" >
+    <i class="fa fa-plus"></i>
+</div>
+<div class="modal fade bs-add-rsv" tabIndex="-1" role="dialog" aria-labelledby="bsAaddRsv">
+    <form class="form-horizontal" id="AddRsvForm" #AddRsvForm="ngForm" (ngSubmit)="AddRsv(reservation)">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Add Reservation</h4>
+                    <button type="button" id="addModal" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="inputfname">First Name</label>
+                            <input name="fname" type="text" class="form-control" id="inputfname" placeholder="First Name"
+                                [(ngModel)]="reservation.firstname">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="inputlname">Last Name</label>
+                            <input name="lname" type="text" class="form-control" id="inputlname" placeholder="Last Name"
+                                [(ngModel)]="reservation.lastname">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-12">
+                            <label for="inputEmail4">Email</label>
+                            <input name="hemail" type="email" class="form-control" id="inputEmail4" placeholder="Email"
+                                required [(ngModel)]="reservation.email"
+                                pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                                (change)="removeSpaces(reservation)" validate>
+                        </div>
+
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-8">
+                            <label><span class="hidden-xs">Hotel Name</span> </label>
+                            <input name="hName" type="text" class="form-control" id="hotelName" [(ngModel)]="reservation.hotelName">
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label><span class="hidden-xs">Price/night </span> </label>
+                            <input name="pnight" type="text" placeholder="Price/night" class="form-control" id="pnight" [(ngModel)]="reservation.price_night">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="inputCheck_in">Check-in</label>
+                            <input name="hin" type="date" (change)="calcNights()" (click)="openCalender()" class="form-control" id="inputCheck_in"
+                                [(ngModel)]="reservation.check_in">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="inputCheck_out">Check-out</label>
+                            <input name="hout" type="date" (change)="calcNights()" class="form-control" id="inputCheck_out"
+                                [(ngModel)]="reservation.check_out">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-4">
+                            <label for="nosNight">Number Of Rooms</label>
+                            <input name="nosNight" type="number" class="form-control" id="nosNight" [(ngModel)]="reservation.noRooms" (change)="calcNights()">
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="nosType">Rooms Type</label>
+                            <select name="nosType" class="form-control" id="nosType" [(ngModel)]="reservation.roomType">
+                                <option value="1">Single</option>
+                                <option value="2">Double</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="nigh">Total No. of Nights (for all rooms)</label>
+                            <input name="nigh" type="number" class="form-control" id="nigh" [disabled]="true"
+                                [(ngModel)]="reservation.total">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-12">
+                            <input type="text" class="form-control" placeholder="Search by Room or Hotel Name" name="srch"
+                                [(ngModel)]="srch" (ngModelChange)="getAllRooms(srch)">
+                        </div>
+                        <div class="form-group col-md-12">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">#</th>
+                                        <th scope="col">Room</th>
+                                        <th scope="col">Adults</th>
+                                        <th scope="col">Hotel</th>
+                                        <th scope="col">Price/Night</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr *ngIf="all_rooms.length===0">
+                                        <td colspan="5"> No available reservations , try add some and get back !</td>
+                                    </tr>
+                                    <tr class="selected" *ngFor="let room of all_rooms | slice:0:10 as total; index as i;"
+                                        (click)="selectRoom($event.target,room)">
+                                        <td>{{i+1}}</td>
+                                        <td>{{room.name}}</td>
+                                        <td>{{room.adults}}</td>
+                                        <td>{{room.hotel.name}}</td>
+                                        <td>{{room.hotel.price_night}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="form-group center">
+                        <button type="submit" class="btn btn-primary form-control" [disabled]="AddRsvForm.invalid">Confirm & Send Email</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+
+<div class="modal fade bs-edit-room" tabIndex="-1" role="dialog" aria-labelledby="editRsvForm">
+    <form class="form-horizontal" id="editRsvForm" #editRsvForm="ngForm" (ngSubmit)="confirmReservation(curr_reservations)">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Update Reservation</h4>
+                    <button type="button" id="editModal" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label><span class="hidden-xs">Hotel Name</span> </label>
+                            <input name="hcName" type="text" class="form-control" id="hotelcName" required [(ngModel)]="curr_reservations.hotelName">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label><span class="hidden-xs">Price/night </span> </label>
+                            <input name="pcnight" type="text" class="form-control" id="pcnight" required [(ngModel)]="curr_reservations.price_night">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="inputCheck_in">Check-in</label>
+                            <input name="hin" type="date" class="form-control" id="inputCheck_in" required 
+                            (click)="setNights()" [(ngModel)]="curr_reservations.check_in">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="inputCheck_out">Check-out</label>
+                            <input name="hout" type="date" class="form-control" id="inputCheck_out" required
+                                [(ngModel)]="curr_reservations.check_out" (click)="setNights()">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-4">
+                            <label for="noNight">Number Of Rooms</label>
+                            <input name="noNight" type="number" class="form-control" id="noNight" required [(ngModel)]="curr_reservations.noRooms">
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="noType">Rooms Type</label>
+                            <select name="noType" class="form-control" id="noType" required [(ngModel)]="curr_reservations.roomType">
+                                <option value="1">Single</option>
+                                <option value="2">Double</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label for="nsigh">Total No. of Nights (for all rooms)</label>
+                            <input name="nsigh" type="number" class="form-control" id="nsigh" [disabled]="true"
+                            [(ngModel)]="curr_reservations.total">
+                        </div>
+
+                        <div class="form-group col-md-12">
+                            <label for="status">Status</label>
+                            <select name="status" class="form-control" id="status" required [(ngModel)]="curr_reservations.status">
+                                <option value="Modified Accepted">Modified Accepted</option>
+                                <option value="Modified Declined">Modified Declined</option>
+                                <option value="Canceled">Canceled</option>
+                                <option value="Checked_Out">Checked Out</option>
+
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group center">
+                        <button type="submit" class="btn btn-primary form-control" [disabled]="editRsvForm.invalid">Accept
+                            Modification</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
